@@ -11,4 +11,4 @@ Mac/Linux: source env/bin/activate
 
 pip install opencv-python
 pip install tensorflow
-
+pip install pytest 
