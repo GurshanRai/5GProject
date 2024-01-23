@@ -14,7 +14,7 @@ Mac/Linux:
   source env/bin/activate
   ```
 
-#Step 3 Install Libraries 
+# Step 3 Install Libraries 
 ```bash
 pip install opencv-python tensorflow pytest
 ```
