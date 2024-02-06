@@ -8,7 +8,7 @@ import numpy as np
 
 
 def main(argv):
-    default_file = r'C:\Users\yonna\Downloads\try.mp4' # example file to replace
+    default_file = r'SoccerField.jpeg' # example file to replace
     filename = argv[0] if len(argv) > 0 else default_file
     # Determine if the input is an image or video
     is_video = filename.endswith(('.mp4', '.avi', '.mkv')) # for video choices
