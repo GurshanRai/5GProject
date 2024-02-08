@@ -11,6 +11,7 @@ from absl import logging
 logging.set_verbosity(logging.ERROR)
 
 # Set filepaths to coco datasets
+# Link to full dataset: https://universe.roboflow.com/queendev9516-gmail-com/soccer-ball-oa830/dataset/1
 training_dataset_path = 'coco_dataset/train'
 valid_dataset_path = 'coco_dataset/valid'
 test_dataset_path = 'coco_dataset/test'
