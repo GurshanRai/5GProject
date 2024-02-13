@@ -15,7 +15,7 @@ def get_mouse_click(event, x, y, flags, param):
         clicked += 1
         if clicked == 2:
             # Draw rectangle between points 1 and 2
-            cv.rectangle(src, rectangle_corners[0], rectangle_corners[1], (30, 255, 30), 5)
+            cv.line(src, rectangle_corners[0], rectangle_corners[1], (30, 255, 30), 5)
         elif clicked == 3:
             # Draw line between points 2 and 3
             cv.line(src, rectangle_corners[1], rectangle_corners[2], (30, 255, 30), 5)
