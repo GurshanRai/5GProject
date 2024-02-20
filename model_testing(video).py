@@ -17,7 +17,6 @@ VIDEO_PATH = "s.mp4"
 # Adjust minimum confidence score as desired
 SCORE_THRESHOLD = 0.5
 
-
 # Create an ObjectDetector object from model
 base_options = python.BaseOptions(model_asset_path=MODEL_PATH)
 options = vision.ObjectDetectorOptions(base_options=base_options,
