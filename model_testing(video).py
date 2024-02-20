@@ -10,8 +10,9 @@ COLOR_GREEN = (0,255,0)
 BORDER_SIZE = 3
 
 # Variables for path to model and video/image to be processed
-MODEL_PATH = "retrained_model2/model.tflite"
-VIDEO_PATH = "../still_samples/s.jpg"
+# Adjust as necessary
+MODEL_PATH = "model.tflite"
+VIDEO_PATH = "s.mp4"
 
 # Adjust minimum confidence score as desired
 SCORE_THRESHOLD = 0.5
