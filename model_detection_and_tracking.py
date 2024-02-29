@@ -7,12 +7,15 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
 # Constant variables
+# Variables for key presses
+NO_KEY = -1
+ESC_KEY = 27
+SPACE_KEY = 32
 # Variables for bounding box color and thickness
 COLOR_GREEN = (0,255,0)
 LINE_THICKNESS = 3
-# Variables for path to model and video/image to be processed
-MODEL_PATH = ""
-VIDEO_PATH = ""
+# Variable for path to model
+MODEL_PATH = "custom_model/model/model.tflite"
 # Adjust minimum confidence score as desired
 SCORE_THRESHOLD = 0.55
 
@@ -50,50 +53,67 @@ def track_ball(frame):
         return True
     return False
 
-# Load the input image/video into capture object
-cap = cv2.VideoCapture(VIDEO_PATH)
-
-ball_detected = False
-tracking = False
-
-# Loop through frames in capture object
-while True:
-    ret,frame = cap.read()
-
-    if not ret:
-        break
-
-    if not ball_detected:
-        # Detect ball if not already tracking ball
-        ball_detected = detect_ball(frame)
+def main(argv):
+    # If no cmd line arguments given, use video camera
+    if len(argv) <= 0:   
+        VIDEO_PATH = 0
     else:
-        # Track ball otherwise
-        if not tracking:
-            # initialize tracker
-            x = ball_detected.origin_x
-            y = ball_detected.origin_y
-            width = ball_detected.width
-            height = ball_detected.height
+        # Otherwise, use argument as video file path
+        VIDEO_PATH = argv[0]
 
-            bbox = (x,y,width,height)
-            tracker.init(frame, bbox)
-            tracking = True
-        else:
-            if not track_ball(frame):
-                ball_detected = False
-                tracking = False
-            
-    key_press = cv2.waitKey(1)
+    # Load the input image/video into capture object
+    cap = cv2.VideoCapture(VIDEO_PATH)
 
-    if key_press == -1:
-        continue
-    elif key_press == 27: # Close video after ESC key is pressed
-        break
-    elif key_press == 32: # Switch to detect after SPACE is pressed
-        ball_detected = False
-        tracking = False
+    ball_detected = False
+    tracking = False
+
+    # Loop through frames in capture object
+    while True:
+        # Read if frame is returned and read frame itself
+        ret,frame = cap.read()
         
+        # Check if video has ended or no frame is read
+        if not ret:
+            break
 
-# Destroy video capture object and windows after ESC is pressed
-cap.release()
-cv2.destroyAllWindows()
+        # Detect ball if ball is not detected yet OR not already tracking ball
+        if not ball_detected:  
+            ball_detected = detect_ball(frame)
+        else:
+            # Track ball otherwise
+            if not tracking:
+                # If tracker is not initialized yet, initialize it to detected box
+                x = ball_detected.origin_x
+                y = ball_detected.origin_y
+                width = ball_detected.width
+                height = ball_detected.height
+
+                bbox = (x,y,width,height)
+                tracker.init(frame, bbox)
+                tracking = True
+            else:
+                # If tracker is initialized, update tracker
+                if not track_ball(frame):
+                    # If tracker fails, switch back to detecting
+                    ball_detected = False
+                    tracking = False
+                
+        # Wait for user to press key
+        key_press = cv2.waitKey(1)
+
+        if key_press == NO_KEY: # Keep looping if no key is pressed
+            continue
+        elif key_press == ESC_KEY: # Close video after ESC key is pressed
+            break
+        elif key_press == SPACE_KEY: # Switch to detect after SPACE is pressed
+            ball_detected = False
+            tracking = False
+            
+
+    # Destroy video capture object and windows after ESC is pressed
+    cap.release()
+    cv2.destroyAllWindows()
+    return 0
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
