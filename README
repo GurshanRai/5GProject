@@ -5,7 +5,7 @@ model_detection_and_tracking.py:
     Detection model as .tflite file (can be adjusted in MODEL_PATH variable)
 
   Arguments:
-    Path of video file if user does not want to use RTMP camera stream
+    Path of video file if user does not want to use RTMP camera stream. Otherwise, no arguments required.
 
   Runs detection model against stream or video. When ball is detected, box is drawn around the ball and the program switches to one of OpenCV's provided trackers to track the ball.
   User can manually switch the program back to detection from tracking by pressing the spacebar while the program is running. When the user wants to close the program, they may
