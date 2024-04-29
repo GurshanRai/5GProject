@@ -1,1 +1,13 @@
-Not sure about the docker file yet still working on that for a env 
+model_detection_and_tracking.py:
+  Pre-requisites: 
+    Python 3.10.5 (required for mediapipe)
+    Mediapipe pip module ("pip install mediapipe")
+    Detection model as .tflite file (can be adjusted in MODEL_PATH variable)
+
+  Arguments:
+    Path of video file if user does not want to use RTMP camera stream
+
+  Runs detection model against stream or video. When ball is detected, box is drawn around the ball and the program switches to one of OpenCV's provided trackers to track the ball.
+  User can manually switch the program back to detection from tracking by pressing the spacebar while the program is running. When the user wants to close the program, they may
+  press the ESC key.
+  
