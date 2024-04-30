@@ -27,8 +27,24 @@ class RectangleDrawer:
             self.src = temp_src
             cv.imshow('Source', self.src)
 
+    def drawlines(self,src):
+        
+        points  = self.rectangle_corners
+        for i in range(1,len(points)):
+            cv.line(src, points[i-1], self.rectangle_corners[i], (30, 255, 30), 5)
+            if((i+1)%4==0):
+                cv.line(src, points[i-3], self.rectangle_corners[i], (30, 255, 30), 5)
+        
+        return src
+
+
     def process_image(self, image_path):
-        self.src = cv.imread(image_path)
+
+        if(isinstance(image_path,str)):
+            self.src = cv.imread(image_path)
+        else:
+            self.src = image_path # detects actual image object
+        
         if self.src is None:
             print('Error opening image!')
             return
@@ -57,7 +73,8 @@ class RectangleDrawer:
 
 def main(image_path):
     rd = RectangleDrawer()
-    return rd.process_image(image_path)
+    return rd.process_image(image_path),rd
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

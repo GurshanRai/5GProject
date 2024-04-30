@@ -6,9 +6,11 @@ import math
 import cv2 as cv
 import numpy as np
 from line_detect_connected import remove_outliers
+from linetracking_main import manual_track 
+from image_processing import process_image
 
 def main(argv):
-    default_file = r'demos/My Movie 6.mov' # example file to replace
+    default_file = r'5GProject/demos/My Movie 6.mov' # example file to replace
     filename = argv[0] if len(argv) > 0 else default_file
     # Determine if the input is an image or video
     is_video = filename.endswith(('.mp4', '.avi', '.mkv','.mov')) # for video choices
@@ -27,6 +29,8 @@ def main(argv):
             print('Error opening image!')
             print('Usage: hough_lines.py [image_name or video_name -- default ' + default_file + '] \n')
             return -1
+        
+    manual_track_image= None
 
     while True:
         if is_video:
@@ -42,8 +46,12 @@ def main(argv):
         else:
             gray = src
 
-        #inject my own code here for image processing
-        
+        if (manual_track_image is None):
+            #inject manual image processing code
+            manual_track_image,rect = manual_track('5GProject/images/field.jpg',src)
+    
+        gray =remove_outliers(src)
+
         # Apply Canny edge detection an opencv function
         edges = cv.Canny(gray, 50, 200, None, 3)
 
@@ -81,6 +89,13 @@ def main(argv):
         cv.imshow("Source", src)
         cv.imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst)
         cv.imshow("Detected Lines (in red) - Probabilistic Line Transform", cdstP)
+
+        # code to show manual tracking
+        combined_image = cv.addWeighted(src, .5, manual_track_image, .5, 0)
+        cv.imshow('Manual tracking', combined_image)
+
+        #show 
+        #cv.imshow("Processed Image", test)
 
         # Break the loop if 'Esc' key is pressed
         # only closes with the esacpe character
