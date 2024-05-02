@@ -7,7 +7,6 @@ import cv2 as cv
 import numpy as np
 from line_detect_connected import remove_outliers
 from linetracking_main import manual_track 
-from image_processing import process_image
 
 def main(argv):
     default_file = r'5GProject/demos/My Movie 6.mov' # example file to replace
@@ -94,9 +93,6 @@ def main(argv):
         combined_image = cv.addWeighted(src, .5, manual_track_image, .5, 0)
         cv.imshow('Manual tracking', combined_image)
 
-        #show 
-        #cv.imshow("Processed Image", test)
-
         # Break the loop if 'Esc' key is pressed
         # only closes with the esacpe character
         if cv.waitKey(30) == 27:
@@ -112,3 +108,65 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+
+def lineTracking(src,birdseye_field_path):
+    '''
+    Parameters:
+    src: image or frame of the video. Type: MatLike
+    birdseye_field_path: path to a birdseye view of the field. Type: String
+
+    Returns:
+    cdstP: Automated line tracking. Type: uint8 NDarray of shape (x,y,3)
+    manual_track_image: Manual Line treacking. Type: uint8 NDarray (x,y,3)
+
+    '''
+        
+    manual_track_image= None
+
+    # Convert the frame to grayscale
+    if len(src.shape) == 3:
+        gray = cv.cvtColor(src, cv.COLOR_BGR2GRAY)
+    else:
+        gray = src
+
+    if (manual_track_image is None):
+        #inject manual image processing code
+        manual_track_image,rect = manual_track(birdseye_field_path,src)
+
+    gray =remove_outliers(src)
+
+    # Apply Canny edge detection an opencv function
+    edges = cv.Canny(gray, 50, 200, None, 3)
+
+    # Copy edges to the images that will display the results in BGR
+    cdst = cv.cvtColor(edges, cv.COLOR_GRAY2BGR)
+    cdstP = np.copy(cdst)
+
+    # Standard Hough Line Transform
+    # this is the line detection part
+    lines = cv.HoughLines(edges, 1, np.pi / 180, 150, None, 0, 0)
+
+    # this is the part where the line is drawn for the first houghlines function
+    if lines is not None:
+        for i in range(0, len(lines)):
+            rho = lines[i][0][0]
+            theta = lines[i][0][1]
+            a = math.cos(theta)
+            b = math.sin(theta)
+            x0 = a * rho
+            y0 = b * rho
+            pt1 = (int(x0 + 1000 * (-b)), int(y0 + 1000 * (a)))
+            pt2 = (int(x0 - 1000 * (-b)), int(y0 - 1000 * (a)))
+            cv.line(cdst, pt1, pt2, (0, 0, 255), 3, cv.LINE_AA)
+
+    # Probabilistic Line finding
+    linesP = cv.HoughLinesP(edges, 1, np.pi / 180, 50, None, 50, 10)
+
+    # for the probablistic part
+    if linesP is not None:
+        for i in range(0, len(linesP)):
+            l = linesP[i][0]
+            cv.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0, 0, 255), 3, cv.LINE_AA)
+
+    
+    return cdstP,manual_track_image
