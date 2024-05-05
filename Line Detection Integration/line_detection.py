@@ -7,9 +7,10 @@ import cv2 as cv
 import numpy as np
 from line_detect_connected import remove_outliers
 from linetracking_main import manual_track 
+import os
 
 def main(argv):
-    default_file = r'5GProject/demos/My Movie 6.mov' # example file to replace
+    default_file = r'5GProject/videos/MyMovie3.mov' # example file to replace
     filename = argv[0] if len(argv) > 0 else default_file
     # Determine if the input is an image or video
     is_video = filename.endswith(('.mp4', '.avi', '.mkv','.mov')) # for video choices
@@ -19,7 +20,26 @@ def main(argv):
         cap = cv.VideoCapture(filename)
         if not cap.isOpened():
             print('Error opening video file!')
-            return -1
+            return -1 
+        
+        #get dimensions for the video
+        frame_width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
+        frame_height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
+        fps = int(cap.get(cv.CAP_PROP_FPS))
+
+        fourcc = cv.VideoWriter_fourcc(*'mp4v')  # Codec for MP4
+
+
+        base_name, _ = os.path.splitext(filename)
+        automated_lines_path = os.path.basename(base_name+"_auto_lines") + ".mp4"
+        manual_lines_path =  os.path.basename(base_name+"_manual_lines") + ".mp4"
+
+        automated_lines_path = os.path.join('videos', automated_lines_path)
+        manual_lines_path = os.path.join('videos', manual_lines_path)
+        
+        automated_lines = cv.VideoWriter(automated_lines_path, fourcc, fps, (frame_width, frame_height))
+        manual_lines = cv.VideoWriter(manual_lines_path, fourcc, fps, (frame_width, frame_height))
+
     else:
         # If the input is an image, read the image
         src = cv.imread(cv.samples.findFile(filename))
@@ -31,13 +51,20 @@ def main(argv):
         
     manual_track_image= None
 
-    while True:
+    control = True
+    while control:
         if is_video:
             # Read frame from video
             ret, src = cap.read() # video reading part
+            control= ret
             if not ret:
                 print('End of video')
-                break
+                cap.release()
+                manual_lines.release()
+                automated_lines.release()
+                break 
+        else:
+            control= False
 
         # Convert the frame to grayscale
         if len(src.shape) == 3:
@@ -85,43 +112,51 @@ def main(argv):
                 cv.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0, 0, 255), 3, cv.LINE_AA)
 
         # Display the different types
-        cv.imshow("Source", src)
-        cv.imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst)
-        cv.imshow("Detected Lines (in red) - Probabilistic Line Transform", cdstP)
+        #cv.imshow("Source", src)
+        #cv.imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst)
+        #cv.imshow("Detected Lines (in red) - Probabilistic Line Transform", cdstP)
+
+        if is_video:
+            manual_lines.write(manual_track_image)
+            automated_lines.write(cdstP)
 
         # code to show manual tracking
-        combined_image = cv.addWeighted(src, .5, manual_track_image, .5, 0)
-        cv.imshow('Manual tracking', combined_image)
+        #combined_image = cv.addWeighted(src, .5, manual_track_image, .5, 0)
+        #cv.imshow('Manual tracking', combined_image)
 
         # Break the loop if 'Esc' key is pressed
         # only closes with the esacpe character
+
+        '''
         if cv.waitKey(30) == 27:
             break
 
     if is_video:
         # Release video capture object
         cap.release()
+        manual_lines.release()
+        automated_lines.release()
 
     cv.destroyAllWindows()
+    '''
     return 0
 
 
 if __name__ == "__main__":
     main(sys.argv[1:])
 
-def lineTracking(src,birdseye_field_path):
+def lineTracking(src,birdseye_field_path,manual_track_image= None):
     '''
     Parameters:
     src: image or frame of the video. Type: MatLike
     birdseye_field_path: path to a birdseye view of the field. Type: String
+    manual_track_image:  Manual Line tracking. Type: uint8 NDarray (x,y,3) or None 
 
     Returns:
     cdstP: Automated line tracking. Type: uint8 NDarray of shape (x,y,3)
-    manual_track_image: Manual Line treacking. Type: uint8 NDarray (x,y,3)
+    manual_track_image: Manual Line tracking. Type: uint8 NDarray (x,y,3)
 
     '''
-        
-    manual_track_image= None
 
     # Convert the frame to grayscale
     if len(src.shape) == 3:
@@ -166,6 +201,9 @@ def lineTracking(src,birdseye_field_path):
     if linesP is not None:
         for i in range(0, len(linesP)):
             l = linesP[i][0]
+            cv.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0, 0, 255), 3, cv.LINE_AA)
+
+    return cdstP,manual_track_image
             cv.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0, 0, 255), 3, cv.LINE_AA)
 
     
