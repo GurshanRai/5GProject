@@ -5,12 +5,13 @@ import sys
 import math
 import cv2 as cv
 import numpy as np
+
+from manual_lineTracking import manual_track
 from line_detect_connected import remove_outliers
-from linetracking_main import manual_track 
 import os
 
 def main(argv):
-    default_file = r'5GProject/videos/MyMovie3.mov' # example file to replace
+    default_file = r'5GProject/videos/My_Movie_6.mov' # example file to replace
     filename = argv[0] if len(argv) > 0 else default_file
     # Determine if the input is an image or video
     is_video = filename.endswith(('.mp4', '.avi', '.mkv','.mov')) # for video choices
@@ -142,9 +143,6 @@ def main(argv):
     return 0
 
 
-if __name__ == "__main__":
-    main(sys.argv[1:])
-
 def lineTracking(src,birdseye_field_path,manual_track_image= None):
     '''
     Parameters:
@@ -204,7 +202,92 @@ def lineTracking(src,birdseye_field_path,manual_track_image= None):
             cv.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0, 0, 255), 3, cv.LINE_AA)
 
     return cdstP,manual_track_image
-            cv.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0, 0, 255), 3, cv.LINE_AA)
 
+
+def manual_Tracking(argv):
+    default_file = r'5GProject/videos/My_Movie_6.mov' # example file to replace
+    filename = argv[0] if len(argv) > 0 else default_file
+    # Determine if the input is an image or video
+    is_video = filename.endswith(('.mp4', '.avi', '.mkv','.mov')) # for video choices
+
+    if is_video:
+        # If the input is a video, read from video file
+        cap = cv.VideoCapture(filename)
+        if not cap.isOpened():
+            print('Error opening video file!')
+            return -1 
+        
+        #get dimensions for the video
+        frame_width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
+        frame_height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
+        fps = int(cap.get(cv.CAP_PROP_FPS))
+
+        fourcc = cv.VideoWriter_fourcc(*'mp4v')  # Codec for MP4
+
+
+        base_name, _ = os.path.splitext(filename)
+        manual_lines_path =  os.path.basename(base_name+"_manual_lines") + ".mp4"
+
+        manual_lines_path = os.path.join('/home/bayan/Desktop/Coding_Projects/Seattle U/Team Project Capstone of Doom/5GProject/line_tracking/videos', manual_lines_path)
+        
+        manual_lines = cv.VideoWriter(manual_lines_path, fourcc, fps, (frame_width, frame_height))
+
+    else:
+        # If the input is an image, read the image
+        src = cv.imread(cv.samples.findFile(filename))
+        # Check if image is loaded fine
+        if src is None:
+            print('Error opening image!')
+            print('Usage: hough_lines.py [image_name or video_name -- default ' + default_file + '] \n')
+            return -1
+        
+    manual_track_image= None
+
+    control = True
+    while control:
+        if is_video:
+            # Read frame from video
+            ret, src = cap.read() # video reading part
+            control= ret
+            if not ret:
+                print('End of video')
+                cap.release()
+                manual_lines.release()
+                break 
+        else:
+            control= False
+
+        if (manual_track_image is None):
+            #inject manual image processing code
+            manual_track_image,rect = manual_track('5GProject/images/field.jpg',src)
     
-    return cdstP,manual_track_image
+
+        # code to show manual tracking
+        combined_image = cv.addWeighted(src, .5, manual_track_image, .5, 0)
+
+        if is_video:
+            manual_lines.write(combined_image)
+
+
+        #cv.imshow('Manual tracking', combined_image)
+
+        # Break the loop if 'Esc' key is pressed
+        # only closes with the esacpe character
+
+        '''
+        if cv.waitKey(30) == 27:
+            break
+
+    if is_video:
+        # Release video capture object
+        cap.release()
+        manual_lines.release()
+        automated_lines.release()
+
+    cv.destroyAllWindows()
+    '''
+    return 0
+
+if __name__ == "__main__":
+    #main(sys.argv[1:])
+    manual_Tracking(sys.argv[1:])
