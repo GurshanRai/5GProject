@@ -204,9 +204,8 @@ def lineTracking(src,birdseye_field_path,manual_track_image= None):
     return cdstP,manual_track_image
 
 
-def manual_Tracking(argv):
-    default_file = r'5GProject/videos/My_Movie_6.mov' # example file to replace
-    filename = argv[0] if len(argv) > 0 else default_file
+def manual_Tracking(path):
+    filename = path
     # Determine if the input is an image or video
     is_video = filename.endswith(('.mp4', '.avi', '.mkv','.mov')) # for video choices
 
@@ -238,7 +237,7 @@ def manual_Tracking(argv):
         # Check if image is loaded fine
         if src is None:
             print('Error opening image!')
-            print('Usage: hough_lines.py [image_name or video_name -- default ' + default_file + '] \n')
+            print('Usage: hough_lines.py [image_name or video_name -- default ' + "filename" + '] \n')
             return -1
         
     manual_track_image= None
@@ -259,7 +258,7 @@ def manual_Tracking(argv):
 
         if (manual_track_image is None):
             #inject manual image processing code
-            manual_track_image,rect = manual_track('5GProject/images/field.jpg',src)
+            manual_track_image,rect = manual_track('/home/bayan/Desktop/Coding_Projects/Seattle U/Team Project Capstone of Doom/5GProject/images/field.jpg',src)
     
 
         # code to show manual tracking
@@ -290,4 +289,4 @@ def manual_Tracking(argv):
 
 if __name__ == "__main__":
     #main(sys.argv[1:])
-    manual_Tracking(sys.argv[1:])
+    manual_Tracking('/home/bayan/Desktop/Coding_Projects/Seattle U/Team Project Capstone of Doom/5GProject/videos/My_Movie_6.mov')
