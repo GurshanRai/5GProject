@@ -6,7 +6,7 @@ import math
 import cv2 as cv
 import numpy as np
 
-from manual_lineTracking import manual_track
+from linetracking_main import manual_track
 from line_detect_connected import remove_outliers
 import os
 
