@@ -204,7 +204,7 @@ def lineTracking(src,birdseye_field_path,manual_track_image= None):
     return cdstP,manual_track_image
 
 
-def manual_Tracking(path):
+def manual_Tracking(path,output_videos_path):
     filename = path
     # Determine if the input is an image or video
     is_video = filename.endswith(('.mp4', '.avi', '.mkv','.mov')) # for video choices
@@ -227,7 +227,7 @@ def manual_Tracking(path):
         base_name, _ = os.path.splitext(filename)
         manual_lines_path =  os.path.basename(base_name+"_manual_lines") + ".mp4"
 
-        manual_lines_path = os.path.join('/home/bayan/Desktop/Coding_Projects/Seattle U/Team Project Capstone of Doom/5GProject/line_tracking/videos', manual_lines_path)
+        manual_lines_path = os.path.join(output_videos_path, manual_lines_path)
         
         manual_lines = cv.VideoWriter(manual_lines_path, fourcc, fps, (frame_width, frame_height))
 
@@ -258,7 +258,7 @@ def manual_Tracking(path):
 
         if (manual_track_image is None):
             #inject manual image processing code
-            manual_track_image,rect = manual_track('/home/bayan/Desktop/Coding_Projects/Seattle U/Team Project Capstone of Doom/5GProject/images/field.jpg',src)
+            manual_track_image,rect = manual_track('/home/bayan/Desktop/Coding_Projects/Seattle_U/Team_Project_Capstone_of_Doom/5GProject/images/field.jpg',src)
     
 
         # code to show manual tracking
@@ -289,4 +289,4 @@ def manual_Tracking(path):
 
 if __name__ == "__main__":
     #main(sys.argv[1:])
-    manual_Tracking('/home/bayan/Desktop/Coding_Projects/Seattle U/Team Project Capstone of Doom/5GProject/videos/My_Movie_6.mov')
+    manual_Tracking(sys.argv[1], sys.argv[2])
