@@ -1,15 +1,20 @@
 # Import the necessary modules.
 # This program only requires "pip install mediapipe" to run
+
+# WARNING: 
+# VIDEOS MUST BE RELATIVELY SAME LENGTH AS THE PROGRAM WILL STOP AFTER THE SHORTEST VIDEO ENDS,
+# VIDEO NAMES MUST CONTAIN NO WHITESPACE
 import sys
 import time
 import os
 import cv2
-import threading
+import shutil
 
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
+from screeninfo import get_monitors
 
 # Constant variables
 # Variables for key presses
@@ -20,8 +25,8 @@ SPACE_KEY = 32
 COLOR_GREEN = (0,255,0)
 LINE_THICKNESS = 3
 FONT = cv2.FONT_HERSHEY_COMPLEX
-FONT_SIZE = 3
-TOP_LEFT = (15,40)
+FONT_SIZE = 2
+TOP_LEFT = (15,60)
 BOTTOM_RIGHT = (5, 1070)
 
 # Variable for path to model
@@ -34,19 +39,20 @@ base_options = python.BaseOptions(model_asset_path=MODEL_PATH)
 options = vision.ObjectDetectorOptions(base_options=base_options,
                                        score_threshold=SCORE_THRESHOLD)
 
-# Initialize detector from ObjectDetector object
+# Initialize detector from ObjectDetector object and create detector for each video
 detectors = []
 for _ in range(4):
     detector = vision.ObjectDetector.create_from_options(options)
     detectors.append(detector)
 
-# Initialize tracker (can be any of the trackers offered in OpenCV)
+# Initialize tracker (can be any of the trackers offered in OpenCV) for each video
 trackers = []
 for _ in range(4):
     tracker = cv2.TrackerCSRT_create()
     trackers.append(tracker)
 
-
+# Reads frame and camera index
+# Returns the bounding box of detected ball
 def detect_ball(frame, index):
     # Convert frame to RGB format in order to be processed and detected
     rgb_frame = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
@@ -58,7 +64,8 @@ def detect_ball(frame, index):
     
     return None
     
-
+# Reads frame and camera index
+# Returns true if tracker succeeds, false otherwise
 def track_ball(frame,index):
     # Track movement within ROI per frame
     (success,box) = trackers[index].update(frame)
@@ -70,21 +77,23 @@ def track_ball(frame,index):
         return True
     return False
 
-def main(argv):
-    # FPS display variables
-    # Time of previous frame and time of new frame
-    prev_frame = 0
-    new_frame = 0
-    frame_count = 0
-    
-    # If no cmd line arguments given, use video camera
-    #video_camera = True
+def save_output(out, video_names):
+    for video_name in video_names:
+        frame_dir = "_temp/" + video_name + "/frame%d.png"
+        os.system("ffmpeg -y -framerate 60 -i '" + frame_dir + "' -c:v libx264 -r 60 '" + out + "/" + video_name + "'")
+        shutil.rmtree("_temp/" + video_name)
+    os.rmdir("_temp")
 
-    video_camera = False
-    videos = argv
+
+def process_videos(argv):
+    frame_count = 0
+    videos = argv[0] 
 
     captures = []
+    video_names = []
+
     for video in videos:
+        video_names.append(video.split("/")[-1])
         cv2.namedWindow(video,cv2.WINDOW_NORMAL)
         # Load the input image/video into capture object
         cap = cv2.VideoCapture(video)
@@ -93,35 +102,55 @@ def main(argv):
     if not cap.isOpened():
         print("Camera could not be opened\n")
 
-    ball_detected = False
-    tracking = False
-
-    mode = ""
+    # Variables for reading each video
     ret = [None] * len(videos)
     frames = [None] * len(videos)
     ball_Detected = [False] * len(videos)
     Tracking = [False] * len(videos)
     Mode = [""] * len(videos)
+    frame_count = [0] * len(videos)
+    screen_corners = [(0,0)] * len(videos)
+    
+    # Get screen resolution for window placement
+    monitor = get_monitors()
+    screen_corners[0] = (monitor[0].x, monitor[0].y)
+    screen_corners[1] = (monitor[0].x + monitor[0].width, monitor[0].y)
+    screen_corners[2] = (monitor[0].x, monitor[0].y + monitor[0].height)
+    screen_corners[3] = (monitor[0].x + monitor[0].width, monitor[0].y + monitor[0].height)
+
+    # Make video frame folders for each video within temporary main folder
+    # Resize and place windows in each corner of screen
+
+    os.makedirs("_temp")
+    for index,video in enumerate(videos):
+        video_folder = ""
+        # Remove spaces in video filename
+        if(" " in video_names[index]):
+            video_folder = video_names[index].replace(" ", "")
+        else:
+            video_folder = video_names[index]
+        os.makedirs("_temp/" + video_folder)
+        cv2.resizeWindow(video, monitor[0].width//2, (int) (monitor[0].height//2.25))
+        cv2.moveWindow(video, screen_corners[index][0], screen_corners[index][1])
+        
+    done = False
 
     # Loop through frames in capture object
     while True:
         for index, cap in enumerate(captures):
             # Read if frame is returned and read frame itself
             ret[index],frames[index] = cap.read()
-            '''
-            Code for taking streams
-            # Check if video has ended or if connection is lost
-            # If using video camera, retry connection
-            if ret[index]:
-                if video_camera:
-                    cap = cv2.VideoCapture(videos)
-                    print("Attempting to reconnect...")
-                    time.sleep(2)
-                    continue
-                else:
-                    # Otherwise, no ret means video has ended
-                    sys.exit(1)
-                '''
+   
+            # Check if video has ended or no frame is read
+            if not ret[index]:
+                done = True
+                break
+
+            frame_count[index] += 1
+
+        if done:
+            break
+            
         for index, frame in enumerate(frames):
             # Detect ball if ball is not detected yet OR not already tracking ball
             if not ball_Detected[index]:  
@@ -148,25 +177,23 @@ def main(argv):
                         ball_Detected[index] = False
                         Tracking[index] = False
 
-            '''
-            # Calculate and display FPS
-            new_frame = time.time()
-            fps = 1 / (new_frame-prev_frame)
-            prev_frame = new_frame
-
-            fps = (int)(fps)
-            fps = (str)(fps)
-            '''
+            # Draw camera number and mode on screen
             cv2.putText(frame,str(index+1),TOP_LEFT,FONT,FONT_SIZE,COLOR_GREEN,LINE_THICKNESS,cv2.LINE_AA)
             cv2.putText(frame,Mode[index],BOTTOM_RIGHT,FONT,FONT_SIZE,COLOR_GREEN,LINE_THICKNESS,cv2.LINE_AA)
+
             cv2.imshow(videos[index],frame)
+
+            # Write frames to temp folder
+            cv2.imwrite("_temp/" + video_names[index]+ "/frame%d.png" %frame_count[index],frame)
+
+            
         # Wait for user to press key
         key_press = cv2.waitKey(1)
 
         if key_press == NO_KEY: # Keep looping if no key is pressed
             continue
         elif key_press == ESC_KEY: # Close video after ESC key is pressed
-            sys.exit(1)
+            done = True
         elif key_press == 49: # Switch capture 1 to detect after 1 is pressed
             ball_Detected[0] = False
             Tracking[0] = False
@@ -180,63 +207,30 @@ def main(argv):
             ball_Detected[3] = False
             Tracking[3] = False
     
-
-        '''
-        # Write frames to output folder
-        if not video_camera:  
-            cv2.imwrite(out + "frame%d.png" %frame_count, frame)
-        frame_count+=1
-        '''
-
-        
-        '''
-        # Stitch spliced video frames into one video
-        if not video_camera:
-            images = [img for img in os.listdir(output_dir) if img.endswith(".png")]
-            frame = cv2.imread(os.path.join(output_dir, images[0]))
-            height, width, layers = frame.shape
-
-            video = cv2.VideoWriter("video.avi", 0, 60, (width,height))
-
-            for image in images:
-                video.write(cv2.imread(os.path.join(output_dir, image)))
-      
-      '''
+    # Destroy video capture object and windows after done
     for cap in captures:
-        # Destroy video capture object and windows after ESC is pressed
         cap.release()
-    #video.release()
-
     cv2.destroyAllWindows()
+
     return 0
 
 if __name__ == "__main__":
-    '''
-    Code for taking streams
-    # If no cmd line arguments given, use GoPro streams
-    if len(sys.argv) == 1:
-        # Initialize camera RTMP addresses for threading
-        cameras = ["rtmp://192.168.1.72/live/gp1",
-                "rtmp://192.168.1.72/live/gp2",
-                "rtmp://192.168.1.72/live/gp3",
-                "rtmp://192.168.1.72/live/gp4"]   
-        for camera in cameras:
-            th = threading.Thread(target=main, args=[camera])
-            th.daemon = True
-            th.start()
-    '''
-    # Otherwise, use argument as video file path
-    if len(sys.argv) == 2:
+    if len(sys.argv) == 3:
         videos = os.listdir(sys.argv[1])
         paths = []
+        video_names = []
+        
         for video in videos:
+            video_names.append(video)
             path = sys.argv[1] + "/" + video
             paths.append(path)
-            
-        main(paths)
+
+        output_folder = sys.argv[2]
+
+        process_videos([paths,output_folder])
+        save_output(output_folder,video_names)
     else:
-        print("Usage for GoPro stream: python3 track_ball.py")
-        print("Usage for saving video: python3 track_ball.py <video_folder_path>")
+        print("Usage for saving video: python3 track_ball.py <video_folder_path> <output_folder>")
         sys.exit(-1)
 
-    # ffmpeg -framerate 60 -i frame%d.png -c:v libx264 -r 60 output.mp4
+    
