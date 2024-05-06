@@ -29,7 +29,7 @@ FONT_SIZE = 2
 TOP_LEFT = (15,60)
 
 # Variable for path to model
-MODEL_PATH = "custom_model/model/model.tflite"
+MODEL_PATH = "model.tflite"
 # Adjust minimum confidence score as desired
 SCORE_THRESHOLD = 0.55
 
