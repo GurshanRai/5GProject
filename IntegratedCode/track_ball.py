@@ -130,7 +130,7 @@ def process_videos(argv):
             video_folder = video_names[index]
         os.makedirs("_temp/" + video_folder)
         cv2.resizeWindow(video, monitor[0].width//2, (int) (monitor[0].height//2.25))
-        cv2.moveWindow(video, screen_corners[index][0], screen_corners[index][1])
+        cv2.moveWindow(video, screen_corners[index][0]//2, screen_corners[index][1]//2)
         
     done = False
 
