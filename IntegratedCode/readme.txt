@@ -1,6 +1,11 @@
 Dependencies:
 - Python 3.10.x
 - Pip modules listed under requirements.txt
+- ffmpeg installed (See ffmpeg install guide below)
+
+How to install ffmpeg on Windows without adminstrator access:
+    1. Download ffmpeg-git-essentials zip file (https://www.gyan.dev/ffmpeg/builds/)
+    2. Extract files and place the bin folder inside of your working directory (same directory containing .py files)
 
 Instructions on how to run:
 - Ensure field.jpg used for line homography is in working directory (same directory as line_detection.py)
