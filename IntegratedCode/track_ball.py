@@ -79,7 +79,7 @@ def track_ball(frame,index):
 def save_output(out, video_names):
     for video_name in video_names:
         frame_dir = "_temp/" + video_name + "/frame%d.png"
-        os.system("ffmpeg -y -framerate 60 -i '" + frame_dir + "' -c:v libx264 -r 60 '" + out + "/" + video_name + "'")
+        os.system("ffmpeg -y -framerate 60 -i " + frame_dir + " -c:v libx264 -r 60 " + out + "/" + video_name)
         shutil.rmtree("_temp/" + video_name)
     os.rmdir("_temp")
 
