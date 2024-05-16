@@ -7,6 +7,7 @@ class RectangleDrawer:
         self.rectangle_corners = []
         self.clicked = 0
         self.last_four_coords = []
+        self.line_color = (142,10,234) # color is in the form of BGR
 
     def get_mouse_click(self, event, x, y, flags, param):
         if event == cv.EVENT_LBUTTONDOWN:
@@ -31,9 +32,9 @@ class RectangleDrawer:
         
         points  = self.rectangle_corners
         for i in range(1,len(points)):
-            cv.line(src, points[i-1], self.rectangle_corners[i], (30, 255, 30), 5)
+            cv.line(src, points[i-1], self.rectangle_corners[i], self.line_color, 5)
             if((i+1)%4==0):
-                cv.line(src, points[i-3], self.rectangle_corners[i], (30, 255, 30), 5)
+                cv.line(src, points[i-3], self.rectangle_corners[i], self.line_color, 5)
         
         return src
 
