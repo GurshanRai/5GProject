@@ -238,7 +238,7 @@ def manual_Tracking(path,output_videos_path):
     
 
         # code to show manual tracking
-        combined_image = cv.addWeighted(src, .5, manual_track_image, .5, 0)
+        combined_image =  cv.bitwise_or(manual_track_image,src)
 
         if is_video:
             manual_lines.write(combined_image)
