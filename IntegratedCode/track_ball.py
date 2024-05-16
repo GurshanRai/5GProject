@@ -71,7 +71,7 @@ def track_ball(frame,index):
     # If there is movement, update tracking box to returned box
     if success:
         (x,y,width,height) = [int(var) for var in box]
-        cv2.rectangle(frame,(x,y),(x+width,y+height), COLOR_GREEN, LINE_THICKNESS)
+        cv2.rectangle(frame,(x,y),(x+width,y+height), COLOR_MAGENTA, LINE_THICKNESS)
 
         return True
     return False
@@ -177,8 +177,8 @@ def process_videos(argv):
                         Tracking[index] = False
 
             # Draw camera number and mode on screen
-            cv2.putText(frame,str(index+1),TOP_LEFT,FONT,FONT_SIZE,COLOR_GREEN,LINE_THICKNESS,cv2.LINE_AA)
-            cv2.putText(frame,Mode[index],(10,monitor[0].height),FONT,FONT_SIZE,COLOR_GREEN,LINE_THICKNESS,cv2.LINE_AA)
+            cv2.putText(frame,str(index+1),TOP_LEFT,FONT,FONT_SIZE,COLOR_MAGENTA,LINE_THICKNESS,cv2.LINE_AA)
+            cv2.putText(frame,Mode[index],(10,monitor[0].height),FONT,FONT_SIZE,COLOR_MAGENTA,LINE_THICKNESS,cv2.LINE_AA)
 
             cv2.imshow(videos[index],frame)
 
