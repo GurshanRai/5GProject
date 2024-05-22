@@ -15,12 +15,12 @@ class RectangleDrawer:
             self.clicked += 1
             temp_src = self.src.copy()
             if self.clicked == 2:
-                cv.line(temp_src, self.rectangle_corners[0], self.rectangle_corners[1], (30, 255, 30), 5)
+                cv.line(temp_src, self.rectangle_corners[0], self.rectangle_corners[1], self.line_color, 5)
             elif self.clicked == 3:
-                cv.line(temp_src, self.rectangle_corners[1], self.rectangle_corners[2], (30, 255, 30), 5)
+                cv.line(temp_src, self.rectangle_corners[1], self.rectangle_corners[2], self.line_color, 5)
             elif self.clicked == 4:
-                cv.line(temp_src, self.rectangle_corners[2], self.rectangle_corners[3], (30, 255, 30), 5)
-                cv.line(temp_src, self.rectangle_corners[3], self.rectangle_corners[0], (30, 255, 30), 5)
+                cv.line(temp_src, self.rectangle_corners[2], self.rectangle_corners[3], self.line_color, 5)
+                cv.line(temp_src, self.rectangle_corners[3], self.rectangle_corners[0], self.line_color, 5)
                 self.last_four_coords.append(self.rectangle_corners[-4:])
                 self.rectangle_corners = []
                 self.clicked = 0
