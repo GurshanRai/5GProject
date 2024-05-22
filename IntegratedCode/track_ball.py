@@ -20,7 +20,43 @@ from screeninfo import get_monitors
 # Variables for key presses
 NO_KEY = -1
 ESC_KEY = 27
-SPACE_KEY = 32
+SPACE_KEY = 32import sys
+import cv2 as cv
+import numpy as np
+
+class RectangleDrawer:
+    def __init__(self):
+        self.rectangle_corners = []
+        self.clicked = 0
+        self.last_four_coords = []
+        self.line_color = (142,10,234) # color is in the form of BGR
+
+    def get_mouse_click(self, event, x, y, flags, param):
+        if event == cv.EVENT_LBUTTONDOWN:
+            self.rectangle_corners.append((x, y))
+            self.clicked += 1
+            temp_src = self.src.copy()
+            if self.clicked == 2:
+                cv.line(temp_src, self.rectangle_corners[0], self.rectangle_corners[1], (30, 255, 30), 5)
+            elif self.clicked == 3:
+                cv.line(temp_src, self.rectangle_corners[1], self.rectangle_corners[2], (30, 255, 30), 5)
+            elif self.clicked == 4:
+                cv.line(temp_src, self.rectangle_corners[2], self.rectangle_corners[3], (30, 255, 30), 5)
+                cv.line(temp_src, self.rectangle_corners[3], self.rectangle_corners[0], (30, 255, 30), 5)
+                self.last_four_coords.append(self.rectangle_corners[-4:])
+                self.rectangle_corners = []
+                self.clicked = 0
+
+            self.src = temp_src
+            cv.imshow('Source', self.src)
+
+    def drawlines(self,src):
+        
+        points  = self.rectangle_corners
+        for i in range(1,len(points)):
+            cv.line(src, points[i-1], self.rectangle_corners[i], self.line_color, 5)
+            if((i+1)%4==0):
+
 # Variables for drawing text/boxes
 COLOR_MAGENTA = (255,0,255)
 LINE_THICKNESS = 3
@@ -29,7 +65,7 @@ FONT_SIZE = 2
 TOP_LEFT = (15,60)
 
 # Variable for path to model
-MODEL_PATH = "model.tflite"
+MODEL_PATH = "custom_model/model/model.tflite"
 # Adjust minimum confidence score as desired
 SCORE_THRESHOLD = 0.55
 
@@ -79,7 +115,7 @@ def track_ball(frame,index):
 def save_output(out, video_names):
     for video_name in video_names:
         frame_dir = "_temp/" + video_name + "/frame%d.png"
-        os.system("ffmpeg -y -framerate 60 -i " + frame_dir + " -c:v libx264 -r 60 " + out + "/" + video_name)
+        os.system("ffmpeg -y -framerate 60 -i '" + frame_dir + "' -c:v libx264 -r 60 '" + out + "/" + video_name + "'")
         shutil.rmtree("_temp/" + video_name)
     os.rmdir("_temp")
 
@@ -130,7 +166,7 @@ def process_videos(argv):
             video_folder = video_names[index]
         os.makedirs("_temp/" + video_folder)
         cv2.resizeWindow(video, monitor[0].width//2, (int) (monitor[0].height//2.25))
-        cv2.moveWindow(video, screen_corners[index][0]//2, screen_corners[index][1]//2)
+        cv2.moveWindow(video, screen_corners[index][0], screen_corners[index][1])
         
     done = False
 
