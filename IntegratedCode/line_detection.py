@@ -270,18 +270,21 @@ The user runs the program like so:
 python3 line_detection <videos folder> <line detection output directory> <ball tracking output directory>.
 '''
 if __name__ == "__main__":
-    videos = os.listdir(sys.argv[1]) #take in videos folder as the 1st argument
+    videos = os.listdir(sys.argv[1])
+    tracking_paths = []
     paths = []
     video_names = []
     
     for video in videos:
         
         video_names.append(video)
-        path = sys.argv[2] + "/" + video #take in the output folder as the 2nd argument
+        tracking_path = sys.argv[2] + "/" + video
+        tracking_paths.append(tracking_path)
+        path = sys.argv[1] + "/" + video
         paths.append(path)
-        manual_Tracking(sys.argv[1] + "/" + video, sys.argv[2]) # videos will be saved as <line detection folder>/videoname. The video name remains the same.
 
-    print(paths)
-    output_folder = sys.argv[3] #take in output directory for ball tracking
-    track_ball.process_videos([paths,output_folder]) # after line tracking is concluded, the output is pipelined into the ball tracking algorithm
-    track_ball.save_output(output_folder,video_names) # output of the videos are saved.
+    track_ball.process_videos([paths,sys.argv[2]])
+    track_ball.save_output(sys.argv[2],video_names)
+
+    for path in tracking_paths:
+        manual_Tracking(path, sys.argv[3])
